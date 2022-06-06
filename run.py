@@ -16,17 +16,22 @@
 
 # run.py
 
-import os
+from os import getenv
+from utils import init_logging, name_logger
 
 from app import create_app
 
-config_name = os.getenv('FLASK_CONFIG')
-if(config_name != 'production'):
-    print(f"Debug info -->> Current FLASK_CONFIG: {config_name}")
+config_name = getenv('FLASK_CONFIG')
+
+# create logger
+logger = init_logging(True, 10, __name__)
+
+logger.debug(f"Current FLASK_CONFIG: {config_name}")
+
 app = create_app(config_name)
 
 if __name__ == '__main__':
     #Should never get here - remove this
     if(config_name != 'production'):
-        print(f"Debug info -->> Time to app.run")
+        logger.warn("Time to app.run")
     app.run()

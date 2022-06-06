@@ -1,23 +1,29 @@
 # tests.py
 
-import unittest
+import unittest, os 
 
 from flask import abort, url_for
 from flask_testing import TestCase
 
 from app import create_app, db
 from app.models import Employee, Role
+from utils import init_logging
 
+print("The value of __name__ is {}".format(__name__)) 
+# pass in test configurations
+os.environ['FLASK_CONFIG'] = 'testing'
+config_name = 'testing'
+# create logger
+logger = init_logging(True, 0, __name__)
+log_file = 'test.txt'
 
 class TestBase(TestCase):
 
     def create_app(self):
-
-        # pass in test configurations
-        config_name = 'testing'
+        logger.info("Creating App")
         app = create_app(config_name)
         app.config.update(
-            SQLALCHEMY_DATABASE_URI='sqlite:///flask_app.db'
+            SQLALCHEMY_DATABASE_URI='sqlite:///db/test_flask_app.sqlite3'
         )
         return app
 
@@ -25,7 +31,7 @@ class TestBase(TestCase):
         """
         Will be called before every test
         """
-
+        logger.info("Setting up...")
         db.create_all()
 
         # create test admin user
@@ -43,7 +49,7 @@ class TestBase(TestCase):
         """
         Will be called after every test
         """
-
+        logger.Info('Tearing down...')
         db.session.remove()
         db.drop_all()
 
@@ -168,4 +174,8 @@ class TestErrorPages(TestBase):
         self.assertTrue("500 Error" in response.data)
 
 if __name__ == '__main__':
-    unittest.main()
+   logger.info('Creating Unittest Log File: A')
+   with open(log_file, "w") as f:
+       logger.info('Creating Unittest Log File: B')
+       runner = unittest.TextTestRunner(f)
+       unittest.main(argv=['first-arg-is-ignored'], exit=False, testRunner=runner)

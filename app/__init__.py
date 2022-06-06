@@ -1,22 +1,32 @@
 # app/__init__.py
 
 # third-party imports
-from flask import Flask, render_template
+from flask import Flask, abort, render_template
 from flask_bootstrap import Bootstrap
 from flask_login import LoginManager
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
 
 # local imports
+from utils import name_logger
 from config import app_config
 
 db = SQLAlchemy()
 login_manager = LoginManager()
 
 def create_app(config_name):
+    logger = name_logger(__name__)
     app = Flask(__name__, instance_relative_config=True)
-    app.config.from_object(app_config[config_name])
-    app.config.from_pyfile('config.py')
+    try:
+        app.config.from_object(app_config[config_name])
+    except:
+        logger.critical(f'Unable to locate config -- {config_name}')
+        exit(1)
+    try:
+        app.config.from_pyfile('config.py')
+    except:
+        logger.critical(f"Unable to locate config.py")
+        exit(1)
 
     Bootstrap(app)
     db.init_app(app)
